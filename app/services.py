@@ -97,7 +97,8 @@ def run_collection() -> dict:
                 )
                 inserted += 1
             session.commit()
-            _upsert_source_status(session, "healthy", now, len(quotes))
+            currency_count = len({quote.code for quote in quotes})
+            _upsert_source_status(session, "healthy", now, currency_count)
             generated = evaluate_alerts(session)
             logger.info(
                 "collection complete quotes=%s inserted=%s alerts=%s",
