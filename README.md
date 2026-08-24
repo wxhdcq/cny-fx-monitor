@@ -39,10 +39,10 @@ Copy-Item .env.example .env
 ```bash
 docker compose up -d --build
 docker compose ps
-curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8765/health
 ```
 
-默认映射到服务器 `8000` 端口。正式公网部署建议在前面增加 Caddy 或其他 HTTPS 反向代理，并仅开放 80/443。
+默认仅绑定服务器回环地址 `127.0.0.1:8765`，不会直接暴露到公网。正式公网部署应在前面增加 Caddy、Nginx 或 OpenResty HTTPS 反向代理，并仅开放 80/443。仓库提供了可挂载到 `/fx-monitor/` 子路径的 [OpenResty 配置](deploy/nginx-fx-monitor.conf)。
 
 ## 配置项
 
@@ -50,6 +50,7 @@ curl http://127.0.0.1:8000/health
 |---|---|---|
 | `DATABASE_URL` | SQLite | 数据库连接地址 |
 | `COLLECT_INTERVAL_MINUTES` | `60` | 采集间隔，最低 5 分钟；日度源频繁采集不会产生新行情 |
+| `APP_PORT` | `8765` | Docker 在服务器回环地址绑定的端口 |
 | `ADMIN_TOKEN` | 空 | 手动采集接口令牌，生产环境必须设置 |
 | `TELEGRAM_BOT_TOKEN` | 空 | Telegram Bot Token |
 | `TELEGRAM_CHAT_ID` | 空 | Telegram 接收目标 |

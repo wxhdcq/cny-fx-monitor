@@ -28,7 +28,7 @@ async function loadData(showToast = false) {
   const refresh = $("#refresh-button");
   refresh.classList.add("spinning");
   try {
-    const [summary, rates] = await Promise.all([getJson("/api/summary"), getJson("/api/rates")]);
+    const [summary, rates] = await Promise.all([getJson("api/summary"), getJson("api/rates")]);
     state.rates = rates.items;
     renderSummary(summary);
     renderTable();
@@ -102,4 +102,3 @@ $(".dialog-close").addEventListener("click", () => $("#currency-dialog").close()
 $("#currency-dialog").addEventListener("click", (event) => { if (event.target === event.currentTarget) event.currentTarget.close(); });
 loadData();
 setInterval(() => loadData(false), 5 * 60 * 1000);
-
