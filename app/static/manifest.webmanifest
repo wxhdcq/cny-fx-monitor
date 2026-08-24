@@ -1,0 +1,17 @@
+{
+  "id": "../",
+  "name": "折光 · 人民币汇率监测",
+  "short_name": "折光汇率",
+  "description": "人民币汇率、历史涨跌、风险货币与双币种换算工具",
+  "lang": "zh-CN",
+  "start_url": "../?source=pwa",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#f2f5f1",
+  "theme_color": "#10271f",
+  "icons": [
+    { "src": "icons/app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/app-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

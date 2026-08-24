@@ -12,6 +12,13 @@ const filterTitles = {
   "low-price": "订阅低价区",
   "high-risk": "风险观察名单",
 };
+const mobileFilterTitles = {
+  all: "市场总览",
+  major: "主流货币",
+  "low-price": "订阅低价区",
+  "high-risk": "风险观察",
+};
+let deferredInstallPrompt = null;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -84,22 +91,29 @@ async function getJson(url) {
 
 async function loadData(showToast = false) {
   const refresh = $("#refresh-button");
+  const mobileRefresh = $("#mobile-refresh-button");
   refresh.classList.add("spinning");
+  mobileRefresh.classList.add("spinning");
   try {
     const [summary, rates] = await Promise.all([getJson("api/summary"), getJson("api/rates")]);
     state.rates = rates.items;
     renderSummary(summary);
     populateCurrencyOptions();
+    populateMobileCurrencyOptions();
     renderConverter();
+    renderMobileConverter();
     renderTable();
+    renderMobileList();
     if (showToast) toast("看板已刷新");
   } catch (error) {
     $("#rates-body").innerHTML = `<tr><td colspan="8"><div class="loading">无法加载数据：${error.message}</div></td></tr>`;
+    $("#mobile-rates-list").innerHTML = `<div class="mobile-list-loading">无法加载数据：${error.message}</div>`;
     $("#health-label").textContent = "连接异常";
     $("#source-dot").className = "status-dot error";
     if (showToast) toast("刷新失败，请检查服务状态");
   } finally {
     refresh.classList.remove("spinning");
+    mobileRefresh.classList.remove("spinning");
   }
 }
 
@@ -113,9 +127,18 @@ function renderSummary(data) {
   $("#updated-text").textContent = data.last_updated
     ? `数据日期 ${formatTime(data.last_updated)} · 自动监测中`
     : "首次数据同步正在进行，请稍候刷新";
+  $("#mobile-updated-text").textContent = data.last_updated
+    ? `${formatTime(data.last_updated)} 更新`
+    : "正在同步最新数据";
+  $("#mobile-currency-count").textContent = data.currency_count || "—";
+  $("#mobile-risk-count").textContent = data.high_risk_count || "0";
+  $("#mobile-alert-count").textContent = data.open_alerts || "0";
+  $("#mobile-health-label").textContent = data.source.status === "healthy" ? "数据正常" : "同步中";
+  $("#mobile-source-dot").className = `status-dot ${data.source.status === "healthy" ? "healthy" : "pending"}`;
   if (data.top_drops.length) {
     const item = data.top_drops[0];
     $("#risk-message").textContent = `${item.code} 当前为 24 小时变动最低（${item.change_1d.toFixed(2)}%）。`;
+    $("#mobile-risk-message").textContent = `${item.code} 24 小时变动最低（${item.change_1d.toFixed(2)}%）`;
   }
 }
 
@@ -264,40 +287,66 @@ function renderCurrencyPicker(select) {
 }
 
 function updateConverterPickers() {
-  [$("#from-currency"), $("#to-currency")].forEach(renderCurrencyPicker);
+  [$("#from-currency"), $("#to-currency"), $("#mobile-from-currency"), $("#mobile-to-currency")].forEach(
+    renderCurrencyPicker,
+  );
 }
 
-function populateCurrencyOptions() {
-  const fromSelect = $("#from-currency");
-  const toSelect = $("#to-currency");
-  const previousFrom = fromSelect.value || "CNY";
-  const previousTo = toSelect.value || "USD";
+function populateCurrencyPair(fromSelect, toSelect, defaultFrom = "CNY", defaultTo = "USD") {
+  const previousFrom = fromSelect.value || defaultFrom;
+  const previousTo = toSelect.value || defaultTo;
   const currencies = converterCurrencies().sort((a, b) => a.code.localeCompare(b.code));
   const options = currencies
     .map((item) => `<option value="${item.code}">${item.flag_code ? item.code : `${item.flag || "🌐"} ${item.code}`}</option>`)
     .join("");
   fromSelect.innerHTML = options;
   toSelect.innerHTML = options;
-  fromSelect.value = currencies.some((item) => item.code === previousFrom) ? previousFrom : "CNY";
-  toSelect.value = currencies.some((item) => item.code === previousTo) ? previousTo : "USD";
-  updateConverterPickers();
+  fromSelect.value = currencies.some((item) => item.code === previousFrom) ? previousFrom : defaultFrom;
+  toSelect.value = currencies.some((item) => item.code === previousTo) ? previousTo : defaultTo;
+  renderCurrencyPicker(fromSelect);
+  renderCurrencyPicker(toSelect);
 }
 
-function renderConverter() {
-  updateConverterPickers();
-  const amount = Number.parseFloat($("#convert-amount").value);
+function populateCurrencyOptions() {
+  populateCurrencyPair($("#from-currency"), $("#to-currency"));
+}
+
+function populateMobileCurrencyOptions() {
+  populateCurrencyPair($("#mobile-from-currency"), $("#mobile-to-currency"));
+}
+
+function renderConverterValues(amountSelector, fromSelector, toSelector, outputSelector, rateSelector) {
+  const fromSelect = $(fromSelector);
+  const toSelect = $(toSelector);
+  renderCurrencyPicker(fromSelect);
+  renderCurrencyPicker(toSelect);
+  const amount = Number.parseFloat($(amountSelector).value);
   const currencies = converterCurrencies();
-  const from = currencies.find((item) => item.code === $("#from-currency").value);
-  const to = currencies.find((item) => item.code === $("#to-currency").value);
+  const from = currencies.find((item) => item.code === fromSelect.value);
+  const to = currencies.find((item) => item.code === toSelect.value);
   if (!from || !to || !Number.isFinite(amount) || amount < 0) {
-    $("#converted-value").textContent = "—";
-    $("#conversion-rate").textContent = "请输入有效的非负金额";
+    $(outputSelector).textContent = "—";
+    $(rateSelector).textContent = "请输入有效的非负金额";
     return;
   }
   const result = (amount * from.value_cny) / to.value_cny;
   const unitRate = from.value_cny / to.value_cny;
-  $("#converted-value").textContent = formatRate(result);
-  $("#conversion-rate").textContent = `1 ${from.code} = ${formatRate(unitRate)} ${to.code} · 参考价自动换算`;
+  $(outputSelector).textContent = formatRate(result);
+  $(rateSelector).textContent = `1 ${from.code} = ${formatRate(unitRate)} ${to.code} · 参考价自动换算`;
+}
+
+function renderConverter() {
+  renderConverterValues("#convert-amount", "#from-currency", "#to-currency", "#converted-value", "#conversion-rate");
+}
+
+function renderMobileConverter() {
+  renderConverterValues(
+    "#mobile-convert-amount",
+    "#mobile-from-currency",
+    "#mobile-to-currency",
+    "#mobile-converted-value",
+    "#mobile-conversion-rate",
+  );
 }
 
 function filteredRows() {
@@ -360,6 +409,36 @@ function renderTable() {
   );
 }
 
+function renderMobileList() {
+  const rows = filteredRows();
+  $("#mobile-list-title").textContent = mobileFilterTitles[state.filter];
+  $("#mobile-result-count").textContent = `${rows.length} 种货币`;
+  if (!rows.length) {
+    $("#mobile-rates-list").innerHTML = '<div class="mobile-list-loading">没有匹配的货币</div>';
+    return;
+  }
+  $("#mobile-rates-list").innerHTML = rows
+    .map((item) => {
+      const [label, cls] = riskLabel(item.risk_score);
+      const pinned = state.pinned.has(item.code);
+      return `<article class="mobile-rate-card ${pinned ? "pinned" : ""}" data-mobile-code="${item.code}">
+        <div class="mobile-rate-head">${flagMarkup(item, "currency-icon")}<div class="mobile-rate-name"><strong>${item.code} · ${item.name_zh || item.name_en}</strong><small>${item.name_en}</small></div><button class="mobile-pin-button ${pinned ? "active" : ""}" data-mobile-pin="${item.code}" aria-label="${pinned ? "取消置顶" : "置顶"} ${item.code}">${pinned ? "★" : "☆"}</button></div>
+        <div class="mobile-rate-main"><div><span>1 ${item.code} 兑人民币</span><strong>¥ ${formatRate(item.value_cny)}</strong></div><span class="risk-badge ${cls}">${label} ${item.risk_score}</span></div>
+        <div class="mobile-change-grid"><div><small>24小时</small>${formatChange(item.change_1d, true)}</div><div><small>3个月</small>${formatChange(item.change_90d, true)}</div><div><small>6个月</small>${formatChange(item.change_180d, true)}</div><div><small>1年</small>${formatChange(item.change_365d, true)}</div></div>
+      </article>`;
+    })
+    .join("");
+  document.querySelectorAll("[data-mobile-code]").forEach((card) =>
+    card.addEventListener("click", () => openCurrency(card.dataset.mobileCode)),
+  );
+  document.querySelectorAll("[data-mobile-pin]").forEach((button) =>
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      togglePinned(button.dataset.mobilePin);
+    }),
+  );
+}
+
 function togglePinned(code) {
   if (state.pinned.has(code)) {
     state.pinned.delete(code);
@@ -370,6 +449,7 @@ function togglePinned(code) {
   }
   savePinned();
   renderTable();
+  renderMobileList();
   const modalPin = $("[data-dialog-pin]");
   if (modalPin?.dataset.dialogPin === code) {
     modalPin.textContent = state.pinned.has(code) ? "★ 已置顶" : "☆ 置顶";
@@ -478,17 +558,36 @@ function renderHistoryChart(item, allPoints, days) {
   });
 }
 
+function setMarketFilter(filter) {
+  state.filter = filter;
+  document.querySelectorAll(".nav-item").forEach((node) => node.classList.toggle("active", node.dataset.filter === filter));
+  document
+    .querySelectorAll(".mobile-nav-item")
+    .forEach((node) => node.classList.toggle("active", node.dataset.mobileFilter === filter));
+  renderTable();
+  renderMobileList();
+}
+
 document.querySelectorAll(".nav-item").forEach((button) =>
+  button.addEventListener("click", () => setMarketFilter(button.dataset.filter)),
+);
+document.querySelectorAll(".mobile-nav-item").forEach((button) =>
   button.addEventListener("click", () => {
-    document.querySelectorAll(".nav-item").forEach((node) => node.classList.remove("active"));
-    button.classList.add("active");
-    state.filter = button.dataset.filter;
-    renderTable();
+    setMarketFilter(button.dataset.mobileFilter);
+    $("#mobile-list-title").scrollIntoView({ behavior: "smooth", block: "start" });
   }),
 );
 $("#search-input").addEventListener("input", (event) => {
   state.query = event.target.value;
+  $("#mobile-search-input").value = state.query;
   renderTable();
+  renderMobileList();
+});
+$("#mobile-search-input").addEventListener("input", (event) => {
+  state.query = event.target.value;
+  $("#search-input").value = state.query;
+  renderTable();
+  renderMobileList();
 });
 $("#convert-amount").addEventListener("input", renderConverter);
 $("#from-currency").addEventListener("change", renderConverter);
@@ -502,13 +601,66 @@ $("#swap-currencies").addEventListener("click", () => {
   $("#to-currency").value = from;
   renderConverter();
 });
+$("#mobile-convert-amount").addEventListener("input", renderMobileConverter);
+$("#mobile-from-currency").addEventListener("change", renderMobileConverter);
+$("#mobile-to-currency").addEventListener("change", renderMobileConverter);
+$("#mobile-swap-currencies").addEventListener("click", () => {
+  const from = $("#mobile-from-currency").value;
+  $("#mobile-from-currency").value = $("#mobile-to-currency").value;
+  $("#mobile-to-currency").value = from;
+  renderMobileConverter();
+});
 $("#refresh-button").addEventListener("click", () => loadData(true));
+$("#mobile-refresh-button").addEventListener("click", () => loadData(true));
 $("[data-jump-risk]").addEventListener("click", () =>
   document.querySelector('[data-filter="high-risk"]').click(),
 );
+$("[data-mobile-jump-risk]").addEventListener("click", () => {
+  setMarketFilter("high-risk");
+  $("#mobile-list-title").scrollIntoView({ behavior: "smooth", block: "start" });
+});
 $(".dialog-close").addEventListener("click", () => $("#currency-dialog").close());
 $("#currency-dialog").addEventListener("click", (event) => {
   if (event.target === event.currentTarget) event.currentTarget.close();
 });
+
+function isStandaloneApp() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function updateInstallState() {
+  document.documentElement.classList.toggle("standalone", isStandaloneApp());
+}
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+});
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  updateInstallState();
+  toast("已添加到桌面");
+});
+$("#mobile-install-button").addEventListener("click", async () => {
+  if (deferredInstallPrompt) {
+    await deferredInstallPrompt.prompt();
+    deferredInstallPrompt = null;
+    return;
+  }
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  $("#install-guidance").textContent = isIOS
+    ? "iPhone 或 iPad 需要通过浏览器的分享菜单添加。安装后会以独立 App 模式启动。"
+    : "在浏览器菜单中选择“安装应用”或“添加到主屏幕”，之后可以像普通 App 一样打开。";
+  $("#install-dialog").showModal();
+});
+$(".install-dialog-close").addEventListener("click", () => $("#install-dialog").close());
+$("#install-dialog").addEventListener("click", (event) => {
+  if (event.target === event.currentTarget) event.currentTarget.close();
+});
+
+updateInstallState();
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js", { scope: "./" }));
+}
 loadData();
 setInterval(() => loadData(false), 5 * 60 * 1000);

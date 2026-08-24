@@ -15,6 +15,7 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--paper); color: var(--ink); font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+.mobile-app { display: none; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 .app-shell { min-height: 100vh; display: grid; grid-template-columns: 230px minmax(0, 1fr); }
@@ -162,6 +163,14 @@ dialog::backdrop { background: rgba(13, 31, 24, .55); backdrop-filter: blur(4px)
 .detail-note { margin: 14px 2px 0; color: var(--muted); font-size: 9px; line-height: 1.6; }
 #toast { position: fixed; right: 24px; bottom: 24px; padding: 11px 15px; border-radius: 10px; background: var(--ink); color: #fff; font-size: 12px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: .2s; }
 #toast.show { opacity: 1; transform: translateY(0); }
+.install-dialog { width: min(420px, calc(100vw - 28px)); text-align: center; }
+.install-dialog-close { position: absolute; top: 14px; right: 16px; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--paper); color: var(--muted); font-size: 23px; }
+.install-app-icon { width: 74px; height: 74px; margin: 4px auto 18px; display: grid; place-items: center; border-radius: 20px; background: var(--lime); color: #17332a; font: 800 40px Georgia, serif; box-shadow: 0 12px 30px rgba(80,105,28,.2); }
+.install-dialog h2 { margin: 6px 0 10px; font: 500 27px Georgia, "Noto Serif SC", serif; }
+.install-dialog > p:not(.eyebrow) { margin: 0 auto; max-width: 320px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.install-dialog ol { margin: 22px 0 0; padding: 0; display: grid; gap: 10px; list-style: none; text-align: left; }
+.install-dialog li { padding: 11px 12px; display: flex; align-items: center; gap: 11px; border-radius: 12px; background: var(--paper); color: #415048; font-size: 12px; }
+.install-dialog li span { width: 25px; height: 25px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; background: var(--green); color: #fff; font-weight: 800; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { to { opacity: .25; } }
 @media (max-width: 900px) {
@@ -211,4 +220,104 @@ dialog::backdrop { background: rgba(13, 31, 24, .55); backdrop-filter: blur(4px)
   .range-tabs button { flex: 1; }
   .chart-summary { align-items: flex-start; flex-wrap: wrap; gap: 7px 14px; }
   .chart-summary span:first-child { width: 100%; }
+}
+
+@media (max-width: 720px) {
+  :root { --mobile-edge: 16px; }
+  body { min-width: 320px; background: #edf2ee; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif; overscroll-behavior-y: none; }
+  .app-shell { display: none; }
+  .mobile-app { min-height: 100dvh; display: block; padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+  .mobile-topbar { position: sticky; z-index: 40; top: 0; min-height: calc(62px + env(safe-area-inset-top)); padding: calc(10px + env(safe-area-inset-top)) var(--mobile-edge) 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(16,39,31,.96); color: #fff; backdrop-filter: blur(18px); }
+  .mobile-brand { min-width: 0; display: flex; align-items: center; gap: 10px; }
+  .mobile-brand > span { width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 11px; background: var(--lime); color: #17332a; font: 800 21px Georgia, serif; }
+  .mobile-brand strong, .mobile-brand small { display: block; }
+  .mobile-brand strong { font-size: 15px; letter-spacing: .04em; }
+  .mobile-brand small { max-width: 180px; margin-top: 3px; overflow: hidden; color: #9db3a8; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-top-actions { display: flex; gap: 8px; }
+  .mobile-round-button { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid #345046; border-radius: 50%; background: #17352b; color: #fff; font-size: 19px; }
+  .mobile-round-button.spinning { animation: spin .8s linear infinite; }
+  .standalone #mobile-install-button { display: none; }
+  .mobile-content { padding: 14px var(--mobile-edge) 24px; }
+  .mobile-hero { padding: 20px; display: grid; grid-template-columns: 1fr auto; gap: 18px 12px; border-radius: 24px; background: linear-gradient(145deg, #15362a, #0d251d); color: #fff; box-shadow: 0 15px 35px rgba(13,39,29,.16); }
+  .mobile-hero p { margin: 0 0 6px; color: #a7c2b4; font-size: 10px; letter-spacing: .12em; }
+  .mobile-hero h1 { margin: 0; font: 500 30px Georgia, "Noto Serif SC", serif; }
+  .mobile-health { align-self: start; padding: 7px 9px; display: flex; align-items: center; gap: 7px; border: 1px solid #365348; border-radius: 99px; background: rgba(255,255,255,.06); color: #dce8e2; font-size: 9px; }
+  .mobile-stat-strip { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #315044; }
+  .mobile-stat-strip div { padding: 15px 10px 0; border-right: 1px solid #315044; }
+  .mobile-stat-strip div:first-child { padding-left: 0; }
+  .mobile-stat-strip div:last-child { border-right: 0; }
+  .mobile-stat-strip span, .mobile-stat-strip strong { display: block; }
+  .mobile-stat-strip span { color: #8fa99d; font-size: 9px; }
+  .mobile-stat-strip strong { margin-top: 5px; font: 600 21px Georgia, serif; }
+  .mobile-risk-card { margin-top: 12px; padding: 14px 15px; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 11px; border: 1px solid #e3dfbd; border-radius: 17px; background: #fffbea; box-shadow: 0 5px 18px rgba(82,74,30,.05); }
+  .mobile-risk-icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; background: #f3e9b6; color: #866612; font-weight: 900; }
+  .mobile-risk-card strong { font-size: 12px; }
+  .mobile-risk-card p { margin: 3px 0 0; overflow: hidden; color: #7d7659; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-risk-card > span:last-child { color: #9a936f; font-size: 24px; }
+  .mobile-converter-card { margin-top: 12px; padding: 18px; border-radius: 22px; background: #fff; box-shadow: 0 10px 30px rgba(25,50,37,.08); }
+  .mobile-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .mobile-section-head span, .mobile-market-title span { color: var(--green); font-size: 9px; font-weight: 850; letter-spacing: .17em; }
+  .mobile-section-head h2, .mobile-market-title h2 { margin: 4px 0 0; font: 500 23px Georgia, "Noto Serif SC", serif; }
+  .mobile-section-head small { color: var(--muted); font-size: 9px; }
+  .mobile-converter-row { margin-top: 15px; display: grid; gap: 7px; }
+  .mobile-money-field { min-width: 0; display: grid; grid-template-columns: minmax(0,1fr) 118px; border: 1px solid #dfe6e1; border-radius: 15px; background: #f6f8f6; }
+  .mobile-money-field label { grid-column: 1 / -1; padding: 10px 12px 0; color: var(--muted); font-size: 9px; }
+  .mobile-money-field input, .mobile-money-field output { min-width: 0; min-height: 47px; padding: 5px 12px 10px; display: flex; align-items: center; border: 0; outline: 0; background: transparent; color: var(--ink); font: 700 20px ui-monospace, SFMono-Regular, monospace; }
+  .mobile-money-field input::-webkit-inner-spin-button { appearance: none; }
+  .mobile-money-field .currency-select-shell { width: 118px; min-height: 47px; grid-column: 2; grid-row: 2; border-top: 0; border-left: 1px solid #dfe6e1; }
+  .mobile-money-field .currency-select-trigger { min-height: 47px; padding-inline: 11px; border-radius: 0 0 14px 0; background: #edf3ef; color: var(--ink); }
+  .mobile-money-field .picker-chevron { color: #718078; }
+  .mobile-money-field .currency-select-menu { top: calc(100% + 7px); left: auto; right: 0; width: min(285px, calc(100vw - 52px)); max-height: min(410px, 56dvh); background: #17372c; }
+  .mobile-swap-button { width: 38px; height: 38px; justify-self: center; border: 1px solid #cdd9d2; border-radius: 50%; background: #eff5f1; color: var(--green); font-size: 18px; }
+  .mobile-conversion-rate { margin: 10px 2px 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+  .mobile-market-section { margin-top: 18px; }
+  .mobile-market-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .mobile-market-title > strong { color: var(--muted); font-size: 10px; font-weight: 600; }
+  .mobile-search { height: 44px; margin-top: 13px; padding: 0 13px; display: flex; align-items: center; gap: 9px; border: 1px solid #dfe5e0; border-radius: 14px; background: #fff; box-shadow: 0 4px 14px rgba(25,50,37,.035); }
+  .mobile-search span { color: #7e8b84; }
+  .mobile-search input { min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 13px; }
+  .mobile-rates-list { margin-top: 10px; display: grid; gap: 9px; }
+  .mobile-list-loading { min-height: 160px; display: grid; place-items: center; color: var(--muted); font-size: 11px; }
+  .mobile-list-loading span { width: 9px; height: 9px; border-radius: 50%; background: var(--green); animation: pulse 1s infinite alternate; }
+  .mobile-rate-card { padding: 15px; border: 1px solid #e2e8e3; border-radius: 18px; background: #fff; box-shadow: 0 7px 22px rgba(28,52,40,.055); }
+  .mobile-rate-card.pinned { border-color: #d9e79e; background: linear-gradient(145deg,#fbfde9,#fff 45%); }
+  .mobile-rate-head { display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 10px; }
+  .mobile-rate-head .currency-icon { width: 40px; height: 30px; }
+  .mobile-rate-name { min-width: 0; }
+  .mobile-rate-name strong, .mobile-rate-name small { display: block; }
+  .mobile-rate-name strong { font-size: 14px; }
+  .mobile-rate-name small { margin-top: 3px; overflow: hidden; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-pin-button { width: 34px; height: 34px; border: 0; border-radius: 10px; background: #f2f5f3; color: #8b9891; font-size: 18px; }
+  .mobile-pin-button.active { background: #f1f6cc; color: #806900; }
+  .mobile-rate-main { margin-top: 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .mobile-rate-main span { display: block; color: var(--muted); font-size: 9px; }
+  .mobile-rate-main strong { display: block; margin-top: 4px; font: 700 21px ui-monospace, SFMono-Regular, monospace; }
+  .mobile-rate-main .risk-badge { margin-bottom: 2px; }
+  .mobile-change-grid { margin-top: 13px; padding-top: 12px; display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; border-top: 1px solid #edf0ed; }
+  .mobile-change-grid div { min-width: 0; text-align: center; }
+  .mobile-change-grid small { display: block; margin-bottom: 4px; color: #8a9690; font-size: 8px; }
+  .mobile-change-grid .change { font-size: 10px; }
+  .mobile-bottom-nav { position: fixed; z-index: 50; right: 0; bottom: 0; left: 0; min-height: calc(64px + env(safe-area-inset-bottom)); padding: 6px 10px calc(6px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4,1fr); border-top: 1px solid rgba(20,50,38,.12); background: rgba(255,255,255,.94); backdrop-filter: blur(20px); }
+  .mobile-nav-item { min-width: 0; padding: 4px; display: grid; place-items: center; gap: 2px; border: 0; border-radius: 12px; background: transparent; color: #829088; }
+  .mobile-nav-item span { width: 29px; height: 25px; display: grid; place-items: center; border-radius: 9px; font-size: 15px; }
+  .mobile-nav-item strong { font-size: 9px; font-weight: 650; }
+  .mobile-nav-item.active { color: var(--green); }
+  .mobile-nav-item.active span { background: #e3f0e9; }
+  #currency-dialog { width: 100%; max-width: none; max-height: 88dvh; margin: auto 0 0; padding: 28px 18px calc(24px + env(safe-area-inset-bottom)); border-radius: 24px 24px 0 0; }
+  #currency-dialog::before { content: ""; width: 42px; height: 5px; position: absolute; top: 8px; left: 50%; border-radius: 99px; background: #dce3df; transform: translateX(-50%); }
+  #currency-dialog .dialog-close { top: 11px; right: 14px; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: #f1f4f2; font-size: 22px; }
+  #currency-dialog .detail-header { padding: 25px 0 0; display: block; }
+  #currency-dialog .dialog-pin { position: absolute; top: 12px; right: 58px; }
+  #currency-dialog .detail-title { font-size: 22px; }
+  #currency-dialog .long-term-meta { grid-template-columns: repeat(2,1fr); }
+  #currency-dialog .history-section { padding: 14px; }
+  #currency-dialog .history-head { align-items: stretch; }
+  #currency-dialog .chart-summary { flex-wrap: wrap; }
+  #toast { right: 16px; bottom: calc(78px + env(safe-area-inset-bottom)); left: 16px; text-align: center; }
+  .install-dialog { width: calc(100% - 28px); margin: auto auto calc(16px + env(safe-area-inset-bottom)); padding: 28px 20px; border-radius: 24px; }
+}
+
+@media (display-mode: standalone) and (max-width: 720px) {
+  .mobile-topbar { min-height: calc(58px + env(safe-area-inset-top)); }
+  .mobile-content { padding-top: 10px; }
 }

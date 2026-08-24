@@ -2,11 +2,17 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="人民币汇率监测与风险预警仪表盘">
+  <meta name="theme-color" content="#10271f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="折光汇率">
   <title>折光 · 人民币汇率监测</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23cde85b'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='42' fill='%2317332a'%3E¥%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./static/styles.css?v=0.2.2">
+  <link rel="manifest" href="./static/manifest.webmanifest?v=0.3.0-r1">
+  <link rel="apple-touch-icon" sizes="180x180" href="./static/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="./static/styles.css?v=0.3.0-r1">
 </head>
 <body>
   <div class="app-shell">
@@ -85,11 +91,68 @@
     </main>
   </div>
 
+  <div class="mobile-app">
+    <header class="mobile-topbar">
+      <div class="mobile-brand"><span>¥</span><div><strong>折光汇率</strong><small id="mobile-updated-text">正在同步数据</small></div></div>
+      <div class="mobile-top-actions">
+        <button id="mobile-install-button" class="mobile-round-button" aria-label="添加到桌面" title="添加到桌面">＋</button>
+        <button id="mobile-refresh-button" class="mobile-round-button" aria-label="刷新数据" title="刷新数据">↻</button>
+      </div>
+    </header>
+
+    <main class="mobile-content">
+      <section class="mobile-hero">
+        <div><p>人民币资产雷达</p><h1>今日汇率</h1></div>
+        <div class="mobile-health"><span id="mobile-source-dot" class="status-dot pending"></span><strong id="mobile-health-label">同步中</strong></div>
+        <div class="mobile-stat-strip">
+          <div><span>覆盖货币</span><strong id="mobile-currency-count">—</strong></div>
+          <div><span>风险观察</span><strong id="mobile-risk-count">—</strong></div>
+          <div><span>当前告警</span><strong id="mobile-alert-count">—</strong></div>
+        </div>
+      </section>
+
+      <section class="mobile-risk-card" data-mobile-jump-risk>
+        <span class="mobile-risk-icon">!</span><div><strong>风险脉冲</strong><p id="mobile-risk-message">等待足够历史数据后开始检测异常波动。</p></div><span aria-hidden="true">›</span>
+      </section>
+
+      <section class="mobile-converter-card">
+        <div class="mobile-section-head"><div><span>快速换算</span><h2>算一笔</h2></div><small>参考汇率自动计算</small></div>
+        <div class="mobile-converter-row">
+          <div class="mobile-money-field"><label for="mobile-convert-amount">输入金额</label><input id="mobile-convert-amount" type="number" value="100" min="0" step="any" inputmode="decimal"><select id="mobile-from-currency" aria-label="手机端原始币种"></select></div>
+          <button id="mobile-swap-currencies" class="mobile-swap-button" aria-label="交换两个币种">⇄</button>
+          <div class="mobile-money-field result"><label>换算结果</label><output id="mobile-converted-value" aria-live="polite">—</output><select id="mobile-to-currency" aria-label="手机端目标币种"></select></div>
+        </div>
+        <p id="mobile-conversion-rate" class="mobile-conversion-rate">正在准备汇率…</p>
+      </section>
+
+      <section class="mobile-market-section">
+        <div class="mobile-market-title"><div><span>MARKET</span><h2 id="mobile-list-title">市场总览</h2></div><strong id="mobile-result-count">—</strong></div>
+        <label class="mobile-search"><span>⌕</span><input id="mobile-search-input" type="search" placeholder="搜索货币或国家" autocomplete="off"></label>
+        <div id="mobile-rates-list" class="mobile-rates-list"><div class="mobile-list-loading"><span></span>正在取得全球汇率…</div></div>
+      </section>
+    </main>
+
+    <nav class="mobile-bottom-nav" aria-label="移动端市场分类">
+      <button class="mobile-nav-item active" data-mobile-filter="all"><span>⌂</span><strong>总览</strong></button>
+      <button class="mobile-nav-item" data-mobile-filter="major"><span>★</span><strong>主流</strong></button>
+      <button class="mobile-nav-item" data-mobile-filter="low-price"><span>◇</span><strong>低价区</strong></button>
+      <button class="mobile-nav-item" data-mobile-filter="high-risk"><span>!</span><strong>风险</strong></button>
+    </nav>
+  </div>
+
   <dialog id="currency-dialog">
     <button class="dialog-close" aria-label="关闭">×</button>
     <div id="dialog-content"></div>
   </dialog>
+  <dialog id="install-dialog" class="install-dialog">
+    <button class="install-dialog-close" aria-label="关闭">×</button>
+    <div class="install-app-icon">¥</div>
+    <p class="eyebrow">ADD TO HOME SCREEN</p>
+    <h2>把折光汇率放到桌面</h2>
+    <p id="install-guidance">在浏览器菜单中选择“添加到主屏幕”，之后可以像普通 App 一样打开。</p>
+    <ol><li><span>1</span>点击浏览器底部或顶部的“分享”按钮</li><li><span>2</span>向下滑动并选择“添加到主屏幕”</li><li><span>3</span>点击右上角“添加”完成安装</li></ol>
+  </dialog>
   <div id="toast" role="status"></div>
-  <script src="./static/app.js?v=0.2.2" defer></script>
+  <script src="./static/app.js?v=0.3.0-r1" defer></script>
 </body>
 </html>

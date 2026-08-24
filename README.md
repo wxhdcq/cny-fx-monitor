@@ -17,6 +17,8 @@
 - 数据源健康状态；
 - Telegram 告警接口；
 - 中文响应式看板；
+- 独立移动端卡片界面、底部导航与移动换算器；
+- 支持 iOS/Android 添加到主屏幕，提供 Web App Manifest、应用图标和离线壳；
 - SQLite 本地运行和 PostgreSQL Docker 部署；
 - 管理员令牌保护的手动采集接口。
 
@@ -84,3 +86,9 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/collect -Headers @
 版本变化见 [CHANGELOG.md](CHANGELOG.md)。
 
 旗帜 SVG 来自 [flag-icons](https://github.com/lipis/flag-icons)，按 MIT License 随项目本地托管，避免不同操作系统对旗帜 Emoji 的渲染差异。
+
+## 添加到手机桌面
+
+- iPhone/iPad：使用浏览器“分享”菜单，选择“添加到主屏幕”；
+- Android：点击移动端顶部的“＋”，或使用浏览器菜单中的“安装应用”；
+- 安装后应用以 `standalone` 模式启动，隐藏常规浏览器地址栏。首次在线打开后，应用外壳可离线启动；实时汇率仍需网络连接。
