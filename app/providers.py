@@ -77,7 +77,12 @@ class FrankfurterProvider:
             code = str(item.get("quote", "")).upper()
             try:
                 foreign_per_cny = Decimal(str(item["rate"]))
-                if foreign_per_cny <= 0 or len(code) != 3 or code in NON_FIAT_CODES:
+                if (
+                    foreign_per_cny <= 0
+                    or len(code) != 3
+                    or code == "CNY"
+                    or code in NON_FIAT_CODES
+                ):
                     continue
                 value_cny = Decimal(1) / foreign_per_cny
                 published = date.fromisoformat(str(item["date"]))

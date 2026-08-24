@@ -22,6 +22,7 @@ def test_parse_rates_skips_invalid_values() -> None:
 def test_non_fiat_assets_are_excluded() -> None:
     payload = [
         {"date": "2026-08-24", "quote": "XAU", "rate": 0.0002},
+        {"date": "2026-08-24", "quote": "CNY", "rate": 1},
         {"date": "2026-08-24", "quote": "USD", "rate": 0.15},
     ]
     quotes = FrankfurterProvider.parse_rates(payload)
