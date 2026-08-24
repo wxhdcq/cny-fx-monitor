@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cny-fx-monitor"
-version = "0.1.0"
+version = "0.2.0"
 description = "人民币汇率监测与风险预警仪表盘"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -32,4 +32,3 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-

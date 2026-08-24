@@ -130,6 +130,25 @@ ZH_NAMES = {
     "ZMW": "赞比亚克瓦查",
 }
 
+FLAG_OVERRIDES = {
+    "ANG": "🇨🇼",
+    "EUR": "🇪🇺",
+    "XAF": "🌍",
+    "XCD": "🌎",
+    "XCG": "🇨🇼",
+    "XOF": "🌍",
+    "XPF": "🌏",
+}
+
+
+def flag_for(code: str) -> str:
+    if code in FLAG_OVERRIDES:
+        return FLAG_OVERRIDES[code]
+    region = code[:2]
+    if len(region) != 2 or not region.isalpha():
+        return "🌐"
+    return "".join(chr(127397 + ord(letter)) for letter in region.upper())
+
 
 def flags_for(code: str) -> dict[str, bool]:
     return {

@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from app.currencies import flag_for
 from app.providers import FrankfurterProvider
 
 
@@ -27,3 +28,10 @@ def test_non_fiat_assets_are_excluded() -> None:
     ]
     quotes = FrankfurterProvider.parse_rates(payload)
     assert [quote.code for quote in quotes] == ["USD"]
+
+
+def test_currency_flags_cover_country_and_shared_regions() -> None:
+    assert flag_for("USD") == "🇺🇸"
+    assert flag_for("TRY") == "🇹🇷"
+    assert flag_for("EUR") == "🇪🇺"
+    assert flag_for("XAF") == "🌍"

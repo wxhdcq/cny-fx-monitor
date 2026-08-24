@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .config import get_settings
-from .currencies import ZH_NAMES, flags_for
+from .currencies import ZH_NAMES, flag_for, flags_for
 from .database import SessionLocal
 from .detector import percentage_change, risk_score, severity_for_change
 from .models import Alert, Currency, Rate, SourceStatus
@@ -65,8 +65,13 @@ def run_collection() -> dict:
         try:
             if session.scalar(select(Currency.code).limit(1)) is None:
                 sync_currencies(session, provider)
-            is_first_collection = (session.scalar(select(func.count(Rate.id))) or 0) == 0
-            from_date = (now - timedelta(days=35)).date() if is_first_collection else None
+            earliest_observation = session.scalar(select(func.min(Rate.observed_at)))
+            if earliest_observation and earliest_observation.tzinfo is None:
+                earliest_observation = earliest_observation.replace(tzinfo=UTC)
+            needs_backfill = earliest_observation is None or earliest_observation > now - timedelta(
+                days=365
+            )
+            from_date = (now - timedelta(days=370)).date() if needs_backfill else None
             quotes = provider.fetch_rates(from_date=from_date)
             known = set(
                 session.scalars(select(Currency.code).where(Currency.is_active.is_(True))).all()
@@ -110,7 +115,7 @@ def run_collection() -> dict:
                 "quotes": len(quotes),
                 "inserted": inserted,
                 "alerts": generated,
-                "backfilled": is_first_collection,
+                "backfilled": needs_backfill,
             }
         except Exception as exc:
             session.rollback()
@@ -119,7 +124,7 @@ def run_collection() -> dict:
             raise
 
 
-def _series_by_currency(session: Session, days: int = 31) -> dict[str, list[Rate]]:
+def _series_by_currency(session: Session, days: int = 370) -> dict[str, list[Rate]]:
     cutoff = datetime.now(UTC) - timedelta(days=days + 2)
     rates = session.scalars(
         select(Rate)
@@ -149,7 +154,14 @@ def build_rate_snapshot(session: Session) -> list[dict]:
             continue
         latest = series[-1]
         changes = {}
-        for key, days in (("change_1d", 1), ("change_7d", 7), ("change_30d", 30)):
+        for key, days in (
+            ("change_1d", 1),
+            ("change_7d", 7),
+            ("change_30d", 30),
+            ("change_90d", 90),
+            ("change_180d", 180),
+            ("change_365d", 365),
+        ):
             changes[key] = percentage_change(
                 latest.value_cny, _previous_value(series, latest.observed_at - timedelta(days=days))
             )
@@ -163,6 +175,7 @@ def build_rate_snapshot(session: Session) -> list[dict]:
                 "name_zh": currency.name_zh,
                 "name_en": currency.name_en,
                 "symbol": currency.symbol,
+                "flag": flag_for(code),
                 "value_cny": float(latest.value_cny),
                 "observed_at": latest.observed_at.isoformat(),
                 "source": latest.source,

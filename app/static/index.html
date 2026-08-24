@@ -43,15 +43,41 @@
         <button data-jump-risk>查看观察名单 →</button>
       </section>
 
+      <section class="converter-panel" aria-labelledby="converter-title">
+        <div class="converter-copy">
+          <p class="eyebrow">QUICK CONVERTER</p>
+          <h2 id="converter-title">即时汇率换算</h2>
+          <p>输入金额即可自动计算，支持任意两个币种互换。</p>
+        </div>
+        <div class="converter-tool">
+          <div class="converter-field">
+            <label for="convert-amount">输入金额</label>
+            <div class="converter-control">
+              <input id="convert-amount" type="number" value="100" min="0" step="any" inputmode="decimal">
+              <select id="from-currency" aria-label="原始币种"></select>
+            </div>
+          </div>
+          <button id="swap-currencies" class="swap-button" aria-label="交换两个币种" title="交换币种">⇄</button>
+          <div class="converter-field result-field">
+            <label for="to-currency">换算结果</label>
+            <div class="converter-control">
+              <output id="converted-value" aria-live="polite">—</output>
+              <select id="to-currency" aria-label="目标币种"></select>
+            </div>
+          </div>
+          <p id="conversion-rate" class="conversion-rate">正在准备汇率…</p>
+        </div>
+      </section>
+
       <section class="panel">
         <div class="panel-head">
-          <div><p class="eyebrow">CURRENCY MATRIX</p><h2 id="table-title">全部汇率</h2></div>
+          <div><p class="eyebrow">CURRENCY MATRIX</p><h2 id="table-title">全部汇率</h2><p id="pin-summary" class="panel-caption">点击星标可将常用货币置顶</p></div>
           <label class="search"><span>⌕</span><input id="search-input" type="search" placeholder="搜索代码或货币名称" autocomplete="off"></label>
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>货币</th><th>1 外币兑人民币</th><th>24 小时</th><th>7 天</th><th>风险</th><th>数据时间</th></tr></thead>
-            <tbody id="rates-body"><tr><td colspan="6"><div class="loading"><span></span>正在取得全球汇率…</div></td></tr></tbody>
+            <thead><tr><th>货币</th><th>1 外币兑人民币</th><th>24 小时</th><th>3 个月</th><th>6 个月</th><th>1 年</th><th>风险</th><th>置顶</th></tr></thead>
+            <tbody id="rates-body"><tr><td colspan="8"><div class="loading"><span></span>正在取得全球汇率…</div></td></tr></tbody>
           </table>
         </div>
         <div class="panel-foot"><span id="result-count">—</span><span>汇率仅供信息参考，不代表实际成交价格</span></div>
