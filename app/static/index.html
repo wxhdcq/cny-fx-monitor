@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="人民币汇率监测与风险预警仪表盘">
+  <title>折光 · 人民币汇率监测</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23cde85b'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='42' fill='%2317332a'%3E¥%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">¥</span><div><strong>折光</strong><small>CNY FX MONITOR</small></div></div>
+      <nav>
+        <button class="nav-item active" data-filter="all"><span>总</span>市场总览</button>
+        <button class="nav-item" data-filter="major"><span>主</span>主流货币</button>
+        <button class="nav-item" data-filter="low-price"><span>订</span>订阅低价区</button>
+        <button class="nav-item" data-filter="high-risk"><span>险</span>风险观察</button>
+      </nav>
+      <div class="source-card">
+        <div class="source-line"><span id="source-dot" class="status-dot pending"></span><strong id="source-status">正在连接</strong></div>
+        <p>日度央行参考汇率</p>
+        <small>数据源 Frankfurter v2</small>
+      </div>
+    </aside>
+
+    <main>
+      <header>
+        <div><p class="eyebrow">人民币资产雷达</p><h1>全球汇率，一眼看清</h1><p id="updated-text" class="subtitle">正在同步最新参考汇率…</p></div>
+        <div class="header-actions"><button id="refresh-button" class="icon-button" title="刷新数据">↻</button><div class="avatar">CN</div></div>
+      </header>
+
+      <section class="metrics" aria-label="市场摘要">
+        <article><span>覆盖货币</span><strong id="currency-count">—</strong><small>有效法币</small></article>
+        <article><span>风险观察</span><strong id="risk-count">—</strong><small>重点监控</small></article>
+        <article><span>当前告警</span><strong id="alert-count">—</strong><small>待处理事件</small></article>
+        <article class="market-state"><span>数据状态</span><strong id="health-label">同步中</strong><small>参考价 · 非交易报价</small></article>
+      </section>
+
+      <section class="risk-strip">
+        <div><span class="pulse"></span><div><strong>风险脉冲</strong><p id="risk-message">等待足够历史数据后开始检测异常波动。</p></div></div>
+        <button data-jump-risk>查看观察名单 →</button>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div><p class="eyebrow">CURRENCY MATRIX</p><h2 id="table-title">全部汇率</h2></div>
+          <label class="search"><span>⌕</span><input id="search-input" type="search" placeholder="搜索代码或货币名称" autocomplete="off"></label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>货币</th><th>1 外币兑人民币</th><th>24 小时</th><th>7 天</th><th>风险</th><th>数据时间</th></tr></thead>
+            <tbody id="rates-body"><tr><td colspan="6"><div class="loading"><span></span>正在取得全球汇率…</div></td></tr></tbody>
+          </table>
+        </div>
+        <div class="panel-foot"><span id="result-count">—</span><span>汇率仅供信息参考，不代表实际成交价格</span></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="currency-dialog">
+    <button class="dialog-close" aria-label="关闭">×</button>
+    <div id="dialog-content"></div>
+  </dialog>
+  <div id="toast" role="status"></div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
