@@ -31,6 +31,7 @@
 - 前端资源和 API 改用相对路径，支持挂载到 `/fx-monitor/` 子路径；
 - Docker 默认仅监听 `127.0.0.1:8765`，避免应用端口直接暴露公网；
 - 增加 OpenResty 子路径反向代理示例。
+- 初版已部署到 Oracle Cloud ARM64 服务器，通过 `https://status.omniacct.com/fx-monitor/` 提供 HTTPS 预览。
 
 ### 安全
 
