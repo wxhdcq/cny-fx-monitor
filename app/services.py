@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .config import get_settings
-from .currencies import ZH_NAMES, flag_for, flags_for
+from .currencies import ZH_NAMES, flag_for, flag_region_for, flags_for
 from .database import SessionLocal
 from .detector import percentage_change, risk_score, severity_for_change
 from .models import Alert, Currency, Rate, SourceStatus
@@ -176,6 +176,7 @@ def build_rate_snapshot(session: Session) -> list[dict]:
                 "name_en": currency.name_en,
                 "symbol": currency.symbol,
                 "flag": flag_for(code),
+                "flag_code": flag_region_for(code),
                 "value_cny": float(latest.value_cny),
                 "observed_at": latest.observed_at.isoformat(),
                 "source": latest.source,

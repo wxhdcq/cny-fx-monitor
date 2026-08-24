@@ -68,7 +68,8 @@ h1 { margin: 0; font-family: Georgia, "Noto Serif SC", serif; font-size: clamp(3
 .converter-control input, .converter-control output { min-width: 0; flex: 1; padding: 0 15px; color: #fff; border: 0; outline: 0; background: transparent; font: 600 18px ui-monospace, SFMono-Regular, Consolas, monospace; }
 .converter-control input { width: 100%; }
 .converter-control input::-webkit-inner-spin-button { appearance: none; }
-.converter-control select { width: 92px; height: 100%; padding: 0 9px; border: 0; border-left: 1px solid #3e564c; outline: 0; background: #2b473b; color: #fff; font-weight: 750; }
+.converter-control select { width: 104px; height: 100%; padding: 0 9px; border: 0; border-left: 1px solid #3e564c; outline: 0; background-color: #2b473b; color: #fff; font-weight: 750; }
+.converter-control select.has-flag { padding-left: 39px; background-image: var(--flag-image); background-repeat: no-repeat; background-position: 10px center; background-size: 22px 16px; }
 .swap-button { width: 42px; height: 42px; margin-bottom: 6px; border: 1px solid #496257; border-radius: 50%; background: transparent; color: var(--lime); font-size: 20px; transition: transform .2s, background .2s; }
 .swap-button:hover { transform: rotate(180deg); background: #2b473b; }
 .conversion-rate { grid-column: 1 / -1; margin: 0 3px; color: #8fa79c; font-size: 10px; }
@@ -89,7 +90,8 @@ tbody tr { transition: background .15s; }
 tbody tr[data-code]:hover { background: #fafcf9; cursor: pointer; }
 .pinned-row { background: linear-gradient(90deg, #fbfdea, #fff 30%); }
 .currency-cell { display: flex; align-items: center; gap: 11px; }
-.currency-icon { width: 38px; height: 30px; display: grid; place-items: center; border: 1px solid #e5e8e5; border-radius: 8px; background: #f8faf8; font-size: 21px; line-height: 1; box-shadow: 0 2px 5px rgba(25, 45, 35, .05); }
+.currency-icon { width: 38px; height: 28px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid #e5e8e5; border-radius: 7px; background: #f8faf8; object-fit: cover; font-size: 21px; line-height: 1; box-shadow: 0 2px 5px rgba(25, 45, 35, .08); }
+.flag-fallback { object-fit: initial; }
 .currency-name strong, .currency-name small { display: block; }
 .currency-name strong { font-size: 12px; }
 .currency-name small { margin-top: 3px; max-width: 180px; color: var(--muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -114,7 +116,7 @@ dialog::backdrop { background: rgba(13, 31, 24, .55); backdrop-filter: blur(4px)
 .detail-title { margin: 8px 0 4px; font: 500 30px Georgia, serif; }
 .detail-header { padding-right: 30px; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
 .detail-identity { display: flex; align-items: center; gap: 15px; }
-.detail-flag { width: 56px; height: 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); font-size: 30px; }
+.detail-flag { width: 56px; height: 42px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); object-fit: cover; font-size: 30px; }
 .dialog-pin { padding: 8px 11px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--muted); font-size: 11px; white-space: nowrap; }
 .dialog-pin.active { border-color: #d4df86; background: #f7fadf; color: #806900; }
 .detail-rate { margin: 22px 0 12px; padding: 18px 20px; background: var(--paper); border-radius: 14px; }

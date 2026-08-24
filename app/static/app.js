@@ -121,9 +121,30 @@ function renderSummary(data) {
 
 function converterCurrencies() {
   return [
-    { code: "CNY", name_zh: "人民币", name_en: "Chinese Yuan", flag: "🇨🇳", value_cny: 1 },
+    { code: "CNY", name_zh: "人民币", name_en: "Chinese Yuan", flag: "🇨🇳", flag_code: "cn", value_cny: 1 },
     ...state.rates,
   ];
+}
+
+function flagAssetUrl(flagCode) {
+  return flagCode ? `static/flags/${flagCode}.svg` : null;
+}
+
+function flagMarkup(item, className) {
+  const assetUrl = flagAssetUrl(item.flag_code);
+  return assetUrl
+    ? `<img class="${className}" src="${assetUrl}" alt="" loading="lazy">`
+    : `<span class="${className} flag-fallback" aria-hidden="true">${item.flag || "🌐"}</span>`;
+}
+
+function updateConverterSelectFlags() {
+  const currencies = converterCurrencies();
+  [$("#from-currency"), $("#to-currency")].forEach((select) => {
+    const item = currencies.find((currency) => currency.code === select.value);
+    const assetUrl = flagAssetUrl(item?.flag_code);
+    select.style.setProperty("--flag-image", item?.flag_code ? `url(\"flags/${item.flag_code}.svg\")` : "none");
+    select.classList.toggle("has-flag", Boolean(assetUrl));
+  });
 }
 
 function populateCurrencyOptions() {
@@ -133,15 +154,17 @@ function populateCurrencyOptions() {
   const previousTo = toSelect.value || "USD";
   const currencies = converterCurrencies().sort((a, b) => a.code.localeCompare(b.code));
   const options = currencies
-    .map((item) => `<option value="${item.code}">${item.flag || "🌐"} ${item.code}</option>`)
+    .map((item) => `<option value="${item.code}">${item.flag_code ? item.code : `${item.flag || "🌐"} ${item.code}`}</option>`)
     .join("");
   fromSelect.innerHTML = options;
   toSelect.innerHTML = options;
   fromSelect.value = currencies.some((item) => item.code === previousFrom) ? previousFrom : "CNY";
   toSelect.value = currencies.some((item) => item.code === previousTo) ? previousTo : "USD";
+  updateConverterSelectFlags();
 }
 
 function renderConverter() {
+  updateConverterSelectFlags();
   const amount = Number.parseFloat($("#convert-amount").value);
   const currencies = converterCurrencies();
   const from = currencies.find((item) => item.code === $("#from-currency").value);
@@ -195,7 +218,7 @@ function renderTable() {
       const [label, cls] = riskLabel(item.risk_score);
       const pinned = state.pinned.has(item.code);
       return `<tr data-code="${item.code}" class="${pinned ? "pinned-row" : ""}">
-        <td><div class="currency-cell"><span class="currency-icon" aria-hidden="true">${item.flag || "🌐"}</span><span class="currency-name"><strong>${item.code} · ${item.name_zh || item.name_en}</strong><small>${item.name_en}</small></span></div></td>
+        <td><div class="currency-cell">${flagMarkup(item, "currency-icon")}<span class="currency-name"><strong>${item.code} · ${item.name_zh || item.name_en}</strong><small>${item.name_en}</small></span></div></td>
         <td><span class="rate-value">¥ ${formatRate(item.value_cny)}</span></td>
         <td>${formatChange(item.change_1d, true)}</td>
         <td>${formatChange(item.change_90d, true)}</td>
@@ -255,7 +278,7 @@ function renderCurrencyDetail(item) {
   const pinned = state.pinned.has(item.code);
   $("#dialog-content").innerHTML = `
     <div class="detail-header">
-      <div class="detail-identity"><span class="detail-flag">${item.flag || "🌐"}</span><div><span class="detail-kicker">${item.is_high_risk ? "RISK WATCH" : "CURRENCY DETAIL"}</span><h2 class="detail-title">${item.code} · ${item.name_zh || item.name_en}</h2><p class="subtitle">${item.name_en}</p></div></div>
+      <div class="detail-identity">${flagMarkup(item, "detail-flag")}<div><span class="detail-kicker">${item.is_high_risk ? "RISK WATCH" : "CURRENCY DETAIL"}</span><h2 class="detail-title">${item.code} · ${item.name_zh || item.name_en}</h2><p class="subtitle">${item.name_en}</p></div></div>
       <button class="dialog-pin ${pinned ? "active" : ""}" data-dialog-pin="${item.code}">${pinned ? "★ 已置顶" : "☆ 置顶"}</button>
     </div>
     <div class="detail-rate"><span>1 ${item.code} 当前参考价值</span><strong>¥ ${formatRate(item.value_cny)}</strong><small>${formatTime(item.observed_at)}</small></div>

@@ -140,6 +140,14 @@ FLAG_OVERRIDES = {
     "XPF": "🌏",
 }
 
+FLAG_REGION_OVERRIDES = {
+    "ANG": "cw",
+    "EUR": "eu",
+    "XCG": "cw",
+}
+
+SHARED_REGION_CURRENCIES = {"XAF", "XCD", "XOF", "XPF"}
+
 
 def flag_for(code: str) -> str:
     if code in FLAG_OVERRIDES:
@@ -148,6 +156,16 @@ def flag_for(code: str) -> str:
     if len(region) != 2 or not region.isalpha():
         return "🌐"
     return "".join(chr(127397 + ord(letter)) for letter in region.upper())
+
+
+def flag_region_for(code: str) -> str | None:
+    """Return the local SVG region code, or None for shared-region currencies."""
+    if code in SHARED_REGION_CURRENCIES:
+        return None
+    if code in FLAG_REGION_OVERRIDES:
+        return FLAG_REGION_OVERRIDES[code]
+    region = code[:2].lower()
+    return region if len(region) == 2 and region.isalpha() else None
 
 
 def flags_for(code: str) -> dict[str, bool]:

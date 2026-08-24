@@ -82,3 +82,5 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/collect -Headers @
 - 初版通过 `create_all` 建表，正式多版本升级前应增加 Alembic 迁移。
 
 版本变化见 [CHANGELOG.md](CHANGELOG.md)。
+
+旗帜 SVG 来自 [flag-icons](https://github.com/lipis/flag-icons)，按 MIT License 随项目本地托管，避免不同操作系统对旗帜 Emoji 的渲染差异。
