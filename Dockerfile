@@ -9,7 +9,8 @@ COPY pyproject.toml README.md ./
 COPY app ./app
 RUN pip install --no-cache-dir .
 
-RUN useradd --create-home --uid 10001 appuser
+RUN useradd --create-home --uid 10001 appuser \
+    && chmod -R a+rX /app/app/static
 USER appuser
 
 EXPOSE 8000
