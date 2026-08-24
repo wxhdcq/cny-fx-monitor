@@ -38,7 +38,7 @@ async def lifespan(_: FastAPI):
     scheduler.shutdown(wait=False)
 
 
-app = FastAPI(title="人民币汇率监测器", version="0.2.1", lifespan=lifespan)
+app = FastAPI(title="人民币汇率监测器", version="0.2.2", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 

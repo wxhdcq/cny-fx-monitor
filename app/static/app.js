@@ -137,14 +137,134 @@ function flagMarkup(item, className) {
     : `<span class="${className} flag-fallback" aria-hidden="true">${item.flag || "🌐"}</span>`;
 }
 
-function updateConverterSelectFlags() {
-  const currencies = converterCurrencies();
-  [$("#from-currency"), $("#to-currency")].forEach((select) => {
-    const item = currencies.find((currency) => currency.code === select.value);
-    const assetUrl = flagAssetUrl(item?.flag_code);
-    select.style.setProperty("--flag-image", item?.flag_code ? `url(\"flags/${item.flag_code}.svg\")` : "none");
-    select.classList.toggle("has-flag", Boolean(assetUrl));
+function closeCurrencyPicker(shell) {
+  if (!shell) return;
+  const trigger = shell.querySelector(".currency-select-trigger");
+  const menu = shell.querySelector(".currency-select-menu");
+  shell.classList.remove("open");
+  trigger.setAttribute("aria-expanded", "false");
+  trigger.removeAttribute("aria-activedescendant");
+  menu.hidden = true;
+}
+
+function closeCurrencyPickers(except = null) {
+  document.querySelectorAll(".currency-select-shell.open").forEach((shell) => {
+    if (shell !== except) closeCurrencyPicker(shell);
   });
+}
+
+function setPickerActive(shell, code, scroll = true) {
+  const trigger = shell.querySelector(".currency-select-trigger");
+  const options = [...shell.querySelectorAll(".currency-option")];
+  const active = options.find((option) => option.dataset.value === code) || options[0];
+  options.forEach((option) => option.classList.toggle("active", option === active));
+  if (!active) return;
+  shell.dataset.activeCode = active.dataset.value;
+  trigger.setAttribute("aria-activedescendant", active.id);
+  if (scroll) active.scrollIntoView({ block: "nearest" });
+}
+
+function openCurrencyPicker(shell) {
+  closeCurrencyPickers(shell);
+  const select = shell.querySelector("select");
+  const trigger = shell.querySelector(".currency-select-trigger");
+  const menu = shell.querySelector(".currency-select-menu");
+  shell.classList.add("open");
+  trigger.setAttribute("aria-expanded", "true");
+  menu.hidden = false;
+  setPickerActive(shell, select.value);
+}
+
+function selectPickerValue(shell, code) {
+  const select = shell.querySelector("select");
+  if (!select.querySelector(`option[value="${code}"]`)) return;
+  select.value = code;
+  select.dispatchEvent(new Event("change", { bubbles: true }));
+  closeCurrencyPicker(shell);
+  shell.querySelector(".currency-select-trigger").focus();
+}
+
+function movePickerActive(shell, movement) {
+  const options = [...shell.querySelectorAll(".currency-option")];
+  if (!options.length) return;
+  const current = options.findIndex((option) => option.dataset.value === shell.dataset.activeCode);
+  const next = movement === "first" ? 0 : movement === "last" ? options.length - 1 : Math.max(0, Math.min(options.length - 1, current + movement));
+  setPickerActive(shell, options[next].dataset.value);
+}
+
+function ensureCurrencyPicker(select) {
+  if (select.closest(".currency-select-shell")) return select.closest(".currency-select-shell");
+  const shell = document.createElement("div");
+  const trigger = document.createElement("button");
+  const menu = document.createElement("div");
+  const menuId = `${select.id}-listbox`;
+  shell.className = "currency-select-shell";
+  trigger.type = "button";
+  trigger.className = "currency-select-trigger";
+  trigger.setAttribute("role", "combobox");
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+  trigger.setAttribute("aria-controls", menuId);
+  trigger.setAttribute("aria-label", select.getAttribute("aria-label") || "选择币种");
+  menu.id = menuId;
+  menu.className = "currency-select-menu";
+  menu.setAttribute("role", "listbox");
+  menu.hidden = true;
+  select.parentNode.insertBefore(shell, select);
+  shell.append(select, trigger, menu);
+  select.classList.add("native-currency-select");
+  select.tabIndex = -1;
+  select.setAttribute("aria-hidden", "true");
+
+  trigger.addEventListener("click", () => {
+    if (shell.classList.contains("open")) closeCurrencyPicker(shell);
+    else openCurrencyPicker(shell);
+  });
+  trigger.addEventListener("keydown", (event) => {
+    const isOpen = shell.classList.contains("open");
+    if (["ArrowDown", "ArrowUp", "Home", "End", "Enter", " ", "Escape"].includes(event.key)) event.preventDefault();
+    if (event.key === "Escape") return closeCurrencyPicker(shell);
+    if (!isOpen && ["ArrowDown", "ArrowUp", "Home", "End", "Enter", " "].includes(event.key)) openCurrencyPicker(shell);
+    if (event.key === "ArrowDown") movePickerActive(shell, 1);
+    else if (event.key === "ArrowUp") movePickerActive(shell, -1);
+    else if (event.key === "Home") movePickerActive(shell, "first");
+    else if (event.key === "End") movePickerActive(shell, "last");
+    else if ((event.key === "Enter" || event.key === " ") && isOpen) selectPickerValue(shell, shell.dataset.activeCode);
+    else if (event.key.length === 1 && /[a-z]/i.test(event.key)) {
+      if (!shell.classList.contains("open")) openCurrencyPicker(shell);
+      const match = [...shell.querySelectorAll(".currency-option")].find((option) => option.dataset.value.startsWith(event.key.toUpperCase()));
+      if (match) setPickerActive(shell, match.dataset.value);
+    }
+  });
+  menu.addEventListener("click", (event) => {
+    const option = event.target.closest(".currency-option");
+    if (option) selectPickerValue(shell, option.dataset.value);
+  });
+  menu.addEventListener("mousemove", (event) => {
+    const option = event.target.closest(".currency-option");
+    if (option) setPickerActive(shell, option.dataset.value, false);
+  });
+  return shell;
+}
+
+function renderCurrencyPicker(select) {
+  const shell = ensureCurrencyPicker(select);
+  const trigger = shell.querySelector(".currency-select-trigger");
+  const menu = shell.querySelector(".currency-select-menu");
+  const currencies = converterCurrencies().sort((a, b) => a.code.localeCompare(b.code));
+  const selected = currencies.find((currency) => currency.code === select.value) || currencies[0];
+  trigger.innerHTML = `${flagMarkup(selected, "picker-flag")}<span>${selected.code}</span><span class="picker-chevron" aria-hidden="true">⌄</span>`;
+  menu.innerHTML = currencies
+    .map(
+      (item) => `<div id="${select.id}-option-${item.code}" class="currency-option ${item.code === selected.code ? "selected" : ""}" role="option" aria-selected="${item.code === selected.code}" data-value="${item.code}">${flagMarkup(item, "picker-option-flag")}<strong>${item.code}</strong><span>${item.name_zh || item.name_en}</span></div>`,
+    )
+    .join("");
+  shell.dataset.activeCode = selected.code;
+  if (shell.classList.contains("open")) setPickerActive(shell, selected.code, false);
+}
+
+function updateConverterPickers() {
+  [$("#from-currency"), $("#to-currency")].forEach(renderCurrencyPicker);
 }
 
 function populateCurrencyOptions() {
@@ -160,11 +280,11 @@ function populateCurrencyOptions() {
   toSelect.innerHTML = options;
   fromSelect.value = currencies.some((item) => item.code === previousFrom) ? previousFrom : "CNY";
   toSelect.value = currencies.some((item) => item.code === previousTo) ? previousTo : "USD";
-  updateConverterSelectFlags();
+  updateConverterPickers();
 }
 
 function renderConverter() {
-  updateConverterSelectFlags();
+  updateConverterPickers();
   const amount = Number.parseFloat($("#convert-amount").value);
   const currencies = converterCurrencies();
   const from = currencies.find((item) => item.code === $("#from-currency").value);
@@ -373,6 +493,9 @@ $("#search-input").addEventListener("input", (event) => {
 $("#convert-amount").addEventListener("input", renderConverter);
 $("#from-currency").addEventListener("change", renderConverter);
 $("#to-currency").addEventListener("change", renderConverter);
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".currency-select-shell")) closeCurrencyPickers();
+});
 $("#swap-currencies").addEventListener("click", () => {
   const from = $("#from-currency").value;
   $("#from-currency").value = $("#to-currency").value;
